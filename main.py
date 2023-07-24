@@ -17,7 +17,7 @@ x=data.drop(['diagnosis(1=m, 0=b)'],axis=1) # data on which we are teaching the 
 #print(x.head())
 y=data['diagnosis(1=m, 0=b)'] # column with the output (what we are traying to predict cancer malignant or not)
 #print(y.head())
-x_train,x_test,y_train,y_test=train_test_split(x,y,train_size=0.3)
+x_train,x_test,y_train,y_test=train_test_split(x,y,train_size=0.35)
 
 # print(x_train)
 # print(x_test)
@@ -29,49 +29,51 @@ y_train_tensor=y_train_tensor.to(device) # przełancza na gpu tensory z danymi
 
 imput_size=x_train_tensor.shape[1]
 #print(Input_layer)
-
-model_NN = nn.Sequential
-(
-    nn.Linear(imput_size, 128),
+a=140# size of layers (neurons number)
+b=80# size of layers (neurons number)
+model = nn.Sequential(
+    nn.Linear(imput_size, b),
     nn.Sigmoid(),
-    nn.Linear(128, 128),
+    nn.Linear(b, a),
     nn.Sigmoid(),
-    nn.Linear(128,1),
+    nn.Linear(a, b),
+    nn.Sigmoid(),
+    nn.Linear(b,1),
     nn.Sigmoid()
 )
 
-lossf=nn.BCELoss()  # Funkcja Binary Cross Entropy
+lossf=nn.BCELoss()  # Funkcja Binary Cross Entropy tu wybieramy jaka funkcja będzie
+                    # urzywana do obliczania
 
-optimizer=torch.optim.Adam(model_NN.parameters())
+optimizer=torch.optim.Adam(model.parameters(),lr=0.001)
 
-model_NN.to(device) # przełancza na gpu model ML
+model.to(device) # przełancza na gpu model ML
 
-for i in range(0,501):
+for i in range(0,2001):
 
-    output=model_NN(x_train_tensor)
+    output=model(x_train_tensor)
 
     Loss=lossf(output,y_train_tensor.view(-1,1))
 
-
     optimizer.zero_grad()
-    Loss.backward()
+    Loss.backward() # oblicza gradienty
     optimizer.step()
 
     # print progres
     if i % 100==0:
-        print(f'{i} Skuteczność: {Loss.item():.4f}')
+        print(f'{i} Error: {Loss.item():.4f}')
 
 
 
-model_NN.eval()  # przełącza model na tryb oceniania
+model.eval()  # przełącza model na tryb oceniania
 with torch.no_grad():
     # torch.tensor zmienia vektor z pandas na tensor z pytorcha
     x_test_tensor=torch.tensor(x_test.values,dtype=torch.float32).to(device)
     y_test_tensor=torch.tensor(y_test.values,dtype=torch.float32).to(device)
 
-    y_wynik=model_NN(x_test_tensor)
-    wyniki=(y_test_tensor>=0.5).squeeze().long()
+    y_wynik=model(x_test_tensor)
+    wyniki=(y_wynik>=0.5).squeeze().long()
     skutecznosc=(y_test_tensor==wyniki).float().mean()
-    print(f'Skuteczność: {skutecznosc}')
-
-
+    #print(y_test_tensor)
+    #print(wyniki)
+    print(f'Skuteczność: {skutecznosc.item():.4f}')
