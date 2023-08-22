@@ -17,7 +17,7 @@ x=data.drop(['diagnosis(1=m, 0=b)'],axis=1) # data on which we are teaching the 
 #print(x.head())
 y=data['diagnosis(1=m, 0=b)'] # column with the output (what we are traying to predict cancer malignant or not)
 #print(y.head())
-x_train,x_test,y_train,y_test=train_test_split(x,y,train_size=0.35)
+x_train,x_test,y_train,y_test=train_test_split(x,y,train_size=0.70,test_size=0.30)
 
 # print(x_train)
 # print(x_test)
@@ -29,8 +29,8 @@ y_train_tensor=y_train_tensor.to(device) # przełancza na gpu tensory z danymi
 
 imput_size=x_train_tensor.shape[1]
 #print(Input_layer)
-a=140# size of layers (neurons number)
-b=80# size of layers (neurons number)
+a=170# size of layers (neurons number)
+b=90# size of layers (neurons number)
 model = nn.Sequential(
     nn.Linear(imput_size, b),
     nn.Sigmoid(),
@@ -49,7 +49,7 @@ optimizer=torch.optim.Adam(model.parameters(),lr=0.001)
 
 model.to(device) # przełancza na gpu model ML
 
-for i in range(0,2001):
+for i in range(0,2701):
 
     output=model(x_train_tensor)
 
